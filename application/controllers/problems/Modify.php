@@ -38,7 +38,7 @@ class Modify extends CI_Controller
             isset($this->arguments['code']) && $params['code'] = $this->arguments['code'];
             isset($this->arguments['time_limit']) && $params['time_limit'] = $this->arguments['time_limit'];
             isset($this->arguments['mem_limit']) && $params['mem_limit'] = $this->arguments['mem_limit'];
-            $pid = $this->Problems->create_problems($params);
+            $pid = $this->Problems->update_problem_info($params);
             $this->response['data']['pid'] = $pid;
         }catch (Exception $e) {
             $this->response['errno'] = $e->getCode();

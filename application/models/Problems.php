@@ -44,6 +44,28 @@ class Problems extends  CI_Model
         }
         return $pid;
     }
+    public function update_problem_info($params)
+    {
+        if(!isset($params['pid']) || !is_numeric($params['pid']) || !isset($params['uid'])){
+            throw new \Exception($this->config->item('103','errno'),103);
+        }
+        $condition = array(
+            'update_time' => date("Y-m-d H:i:s", time()),
+        );
+        isset($params['title']) && $condition['title'] = $params['title'];
+        isset($params['code']) && $condition['code'] = $params['code'];
+        isset($params['time_limit']) && $condition['time_limit'] = $params['time_limit'];
+        isset($params['mem_limit']) && $condition['mem_limit'] = $params['mem_limit'];
+        $where = array(
+            'uid' => $params['uid'],
+            'pid' => $params['pid'],
+        );
+        if(!$this->db->update('problems',$condition,$where)){
+            $error = $this->db->error();
+            throw new \Exception($error['message'],$error['code']);
+        }
+        return $params['pid'];
+    }
     public function delete_problem_info($params)
     {
         if(!isset($params['pid']) || !is_numeric($params['pid']) || !isset($params['uid'])){
