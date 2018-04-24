@@ -7,12 +7,21 @@
  */
 function create_case_id()
 {
-    $id = config_item('colony_id').time();
+    $id = config_item('colony_id').'1'.time();
+    return $id;
+}
+function create_notice_id()
+{
+    $id = config_item('colony_id').'2'.time();
     return $id;
 }
 function get_uid($arguments)
 {
     return $arguments['uid'];
+}
+function get_notice_file_name($notice_id)
+{
+    return 'note_'.$notice_id.'.code';
 }
 function get_case_file_name($type,$case_id)
 {

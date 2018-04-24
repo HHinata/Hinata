@@ -896,7 +896,6 @@ class CI_Upload {
 		}
 
 		$ext = strtolower(ltrim($this->file_ext, '.'));
-
 		if ( ! in_array($ext, $this->allowed_types, TRUE))
 		{
 			return FALSE;
@@ -912,14 +911,12 @@ class CI_Upload {
 		{
 			return TRUE;
 		}
-
 		if (isset($this->_mimes[$ext]))
 		{
 			return is_array($this->_mimes[$ext])
 				? in_array($this->file_type, $this->_mimes[$ext], TRUE)
 				: ($this->_mimes[$ext] === $this->file_type);
 		}
-
 		return FALSE;
 	}
 

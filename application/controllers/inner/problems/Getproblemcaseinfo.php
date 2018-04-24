@@ -3,10 +3,10 @@
 /**
  * Created by PhpStorm.
  * User: Hinata
- * Date: 2018/4/13
- * Time: 19:53
+ * Date: 2018/4/23
+ * Time: 23:41
  */
-class Delete extends CI_Controller
+class Getproblemcaseinfo extends CI_Controller
 {
     private $response;
     private $arguments;
@@ -23,18 +23,23 @@ class Delete extends CI_Controller
     public function index()
     {
         try{
-            if(!$this->load->helper(array('common')) || !$this->load->model('Notices') || !$this->config->load('errno',true)){
+            if(!$this->load->helper(array('common','download')) || !$this->load->model('Cases') || !$this->config->load('errno',true)){
                 throw new \Exception($this->config->item('102','errno'), 102);
             }
             $this->check_arguments();
-            $this->arguments['uid'] = get_uid($this->arguments);
-            $file_name = get_notice_file_name($this->arguments['notice_id']);
             $params = array(
-                'uid'  => $this->arguments['uid'],
-                'notice_id' => $this->arguments['notice_id'],
+                'case_id' => $this->arguments['case_id'],
+                'type'  => $this->arguments['type'],
             );
-            $this->Notices->delete_notice_info($params);
-            $this->response['data']['notice_id'] = $this->arguments['notice_id'];
+            $case_info = $this->Cases->show_case_info($params);
+            if($case_info == false){
+                throw new \Exception($this->config->item('100002','errno'),100002);
+            }
+            $file_name = get_case_file_name($this->arguments['type'],$this->arguments['case_id']);
+            $file_name = $this->config->item('upload_path').$file_name;
+            if(!force_download($file_name,NULL)){
+                throw new \Exception($this->config->item('100003','errno'),100003);
+            }
         }catch (\Exception $e){
             $this->response['errno'] = $e->getCode();
             $this->response['errmsg'] = $e->getMessage();
@@ -44,7 +49,7 @@ class Delete extends CI_Controller
     }
     public function check_arguments()
     {
-        if(!isset($this->arguments['uid']) || !isset($this->arguments['notice_id'])){
+        if(!isset($this->arguments['case_id']) || !isset($this->arguments['type'])){
             throw new \Exception($this->config->item('103','errno'),103);
         }
     }

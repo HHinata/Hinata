@@ -3,12 +3,11 @@
 /**
  * Created by PhpStorm.
  * User: Hinata
- * Date: 2018/4/13
- * Time: 19:53
+ * Date: 2018/4/23
+ * Time: 23:30
  */
-class Modify extends CI_Controller
+class  Noticeback extends CI_Controller
 {
-
     private $response;
     private $arguments;
 
@@ -22,7 +21,6 @@ class Modify extends CI_Controller
             'data' => [],
         );
     }
-
     public function index()
     {
         try {
@@ -30,15 +28,14 @@ class Modify extends CI_Controller
                 throw new \Exception($this->config->item('102', 'errno'), 102);
             }
             $this->check_arguments();
-            $this->arguments['uid'] = get_uid($this->arguments);
-
             $params = array(
-                'uid' => $this->arguments['uid'],
                 'notice_id' => $this->arguments['notice_id'],
+                'use_time'  => $this->arguments['use_time'],
+                'use_memory'=> $this->arguments['use_memory'],
+                'message'   => $this->arguments['message'],
+                'notice_status' => $this->arguments['notice_status'],
             );
-            isset($this->arguments['pid']) && $params['pid'] = $this->arguments['pid'];
-            isset($this->arguments['notice_status']) && $params['notice_status'] = $this->arguments['notice_status'];
-            $notice_id = $this->Notices->update_notice_info($params);
+            $notice_id = $this->Notices->notice_back($params);
             $this->response['data']['notice_id'] = $notice_id;
         } catch (Exception $e) {
             $this->response['errno'] = $e->getCode();
@@ -50,7 +47,9 @@ class Modify extends CI_Controller
 
     public function check_arguments()
     {
-        if (!isset($this->arguments['notice_id']) || !isset($this->arguments['uid'])) {
+        if (!isset($this->arguments['notice_id']) || !isset($this->arguments['use_time'])
+        || !isset($this->arguments['use_memory']) || !isset($this->arguments['message'])
+        || !isset($this->arguments['notice_status'])) {
             throw new \Exception($this->config->item('103', 'errno'), 103);
         }
     }

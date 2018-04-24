@@ -3,10 +3,10 @@
 /**
  * Created by PhpStorm.
  * User: Hinata
- * Date: 2018/4/13
- * Time: 19:53
+ * Date: 2018/4/23
+ * Time: 23:13
  */
-class Delete extends CI_Controller
+class Pop extends CI_Controller
 {
     private $response;
     private $arguments;
@@ -27,14 +27,12 @@ class Delete extends CI_Controller
                 throw new \Exception($this->config->item('102','errno'), 102);
             }
             $this->check_arguments();
-            $this->arguments['uid'] = get_uid($this->arguments);
-            $file_name = get_notice_file_name($this->arguments['notice_id']);
-            $params = array(
-                'uid'  => $this->arguments['uid'],
-                'notice_id' => $this->arguments['notice_id'],
-            );
-            $this->Notices->delete_notice_info($params);
-            $this->response['data']['notice_id'] = $this->arguments['notice_id'];
+            $notice_info = $this->Notices->notice_pop();
+            if($notice_info === false){
+                throw new \Exception($this->config->item('100006','errno'),100006);
+            }
+            $notice_info['code'] = json_decode($notice_info['code'],true);
+            $this->response['data']['notice_info'] = $notice_info;
         }catch (\Exception $e){
             $this->response['errno'] = $e->getCode();
             $this->response['errmsg'] = $e->getMessage();
@@ -44,8 +42,5 @@ class Delete extends CI_Controller
     }
     public function check_arguments()
     {
-        if(!isset($this->arguments['uid']) || !isset($this->arguments['notice_id'])){
-            throw new \Exception($this->config->item('103','errno'),103);
-        }
     }
 }

@@ -8,7 +8,7 @@
 
 
 $config['upload_path']      = './uploads/';
-$config['allowed_types']    = 'txt';
+$config['allowed_types']    = '*';
 $config['max_size']         = 10000;
 $config['max_width']        = 10240;
 $config['max_height']       = 7680;

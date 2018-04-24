@@ -46,7 +46,7 @@ class Create extends CI_Controller
         }
         if (!$this->upload->do_upload('case_file')) {
             $error = array('error' => $this->upload->display_errors());
-            throw new \Exception($error, 100001);
+            throw new \Exception($error['error'], 100001);
         }
         else {
             $data = array('upload_data' => $this->upload->data());
@@ -62,7 +62,7 @@ class Create extends CI_Controller
     }
     public function check_arguments()
     {
-        if(!isset($this->arguments['pid']) || !isset($this->arguments['type']) || !isset($this->arguments['uid'])){
+        if(!isset($this->arguments['pid']) || !isset($this->arguments['type']) || !isset($this->arguments['uid']) || !isset($_FILES['case_file'])){
             throw new \Exception($this->config->item('103','errno'), 103);
         }
     }

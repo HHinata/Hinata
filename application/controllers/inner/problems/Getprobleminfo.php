@@ -3,10 +3,10 @@
 /**
  * Created by PhpStorm.
  * User: Hinata
- * Date: 2018/4/13
- * Time: 19:53
+ * Date: 2018/4/23
+ * Time: 23:41
  */
-class Delete extends CI_Controller
+class Getprobleminfo extends CI_Controller
 {
     private $response;
     private $arguments;
@@ -23,18 +23,18 @@ class Delete extends CI_Controller
     public function index()
     {
         try{
-            if(!$this->load->helper(array('common')) || !$this->load->model('Notices') || !$this->config->load('errno',true)){
+            if(!$this->load->helper(array('common')) || !$this->load->model('Problems') || !$this->config->load('errno',true)){
                 throw new \Exception($this->config->item('102','errno'), 102);
             }
             $this->check_arguments();
-            $this->arguments['uid'] = get_uid($this->arguments);
-            $file_name = get_notice_file_name($this->arguments['notice_id']);
             $params = array(
-                'uid'  => $this->arguments['uid'],
-                'notice_id' => $this->arguments['notice_id'],
+                'pid'  => $this->arguments['pid'],
             );
-            $this->Notices->delete_notice_info($params);
-            $this->response['data']['notice_id'] = $this->arguments['notice_id'];
+            $pro_info = $this->Problems->show_problem_info($params);
+            if($pro_info == false){
+                throw new \Exception($this->config->item('100004','errno'),100004);
+            }
+            $this->response['data']['problem_info'] = $pro_info;
         }catch (\Exception $e){
             $this->response['errno'] = $e->getCode();
             $this->response['errmsg'] = $e->getMessage();
@@ -44,7 +44,7 @@ class Delete extends CI_Controller
     }
     public function check_arguments()
     {
-        if(!isset($this->arguments['uid']) || !isset($this->arguments['notice_id'])){
+        if(!isset($this->arguments['pid'])){
             throw new \Exception($this->config->item('103','errno'),103);
         }
     }

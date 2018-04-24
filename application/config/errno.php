@@ -12,4 +12,6 @@ $config = array(
     100002 => 'case non-existent',
     100003 => 'download error',
     100004 => 'problem non-existent',
+    100005 => 'notice non-existent',
+    100006 => 'notice pop error',
 );
