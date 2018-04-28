@@ -75,8 +75,8 @@ $query_builder = TRUE;
 
 $db['default'] = array(
 	'dsn'	=> '',
-	'hostname' => 'localhost',
-	'username' => 'root',
+	'hostname' => '172.22.32.65',
+	'username' => 'mirai',
 	'password' => '111111',
 	'database' => 'hinata',
 	'dbdriver' => 'mysqli',
@@ -94,3 +94,4 @@ $db['default'] = array(
 	'failover' => array(),
 	'save_queries' => TRUE
 );
+$db['default']['port'] = 4006;

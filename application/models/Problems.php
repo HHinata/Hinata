@@ -85,6 +85,31 @@ class Problems extends  CI_Model
         }
         return true;
     }
+    public function mdelete_problem_info($params)
+    {
+        if(empty($params['pids'])){
+            return true;
+        }
+        if(!isset($params['pids']) || !is_array($params['pids']) || !isset($params['uid'])){
+            throw new \Exception($this->config->item('103','errno'),103);
+        }
+        foreach ($params['pids'] as $key => $pid){
+            if(!is_numeric($pid)){
+                throw new \Exception($this->config->item('103','errno'),103);
+            }
+        }
+        $condition = array(
+            'status'      => 0,
+            'update_time' => date("Y-m-d H:i:s", time()),
+        );
+        $this->db->where_in('pid',$params['pids']);
+        $this->db->where('uid',$params['uid']);
+        if(!$this->db->update('problems',$condition)){
+            $error = $this->db->error();
+            throw new \Exception($error['message'],$error['code']);
+        }
+        return true;
+    }
     public function show_problem_info($params)
     {
         if(!isset($params['pid']) || !is_numeric($params['pid']) || !isset($params['uid'])){
@@ -107,9 +132,62 @@ class Problems extends  CI_Model
         $info = $info->row_array();
         return $this->filter_info($info);
     }
+    public function show_problem_info_by_ids($params)
+    {
+        if(!isset($params['pids']) || !is_array($params['pids']) || !isset($params['uid'])){
+            throw new \Exception($this->config->item('103','errno'),103);
+        }
+        foreach ($params['pids'] as $key => $pid){
+            if(!is_numeric($pid)){
+                throw new \Exception($this->config->item('103','errno'),103);
+            }
+        }
+        if(empty($params['pids'])){
+            return array();
+        }
+        $this->db->where_in('pid',$params['pids']);
+        $this->db->where('uid',$params['uid']);
+        $this->db->where('status',1);
+        $infos = $this->db->get('problems');
+        if($infos == false){
+            $error = $this->db->error();
+            throw new \Exception($error['message'],$error['code']);
+        }
+        $num = $infos->num_rows();
+        if($num == 0){
+            return array();
+        }
+        $infos = $infos->result_array();
+        return $this->filter_infos($infos);
+    }
+    public function show_problem_info_by_user($params)
+    {
+        if(!isset($params['uid'])){
+            throw new \Exception($this->config->item('103','errno'),103);
+        }
+        $where = array(
+            'uid'    => $params['uid'],
+            'status' => 1,
+        );
+        $infos = $this->db->get_where('problems',$where);
+        if($infos == false){
+            $error = $this->db->error();
+            throw new \Exception($error['message'],$error['code']);
+        }
+        $num = $infos->num_rows();
+        if($num == 0){
+            return false;
+        }
+        $infos = $infos->result_array();
+        return $this->filter_infos($infos);
+    }
     public function filter_info($info)
     {
         return $info;
+    }
+    public function filter_infos($infos)
+    {
+        return $infos;
     }
     public function create_problem_id($uid)
     {

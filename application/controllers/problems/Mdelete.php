@@ -3,10 +3,10 @@
 /**
  * Created by PhpStorm.
  * User: Hinata
- * Date: 2018/4/23
- * Time: 23:41
+ * Date: 2018/4/28
+ * Time: 17:14
  */
-class Getprobleminfo extends CI_Controller
+class Mdelete extends CI_Controller
 {
     private $response;
     private $arguments;
@@ -23,26 +23,17 @@ class Getprobleminfo extends CI_Controller
     public function index()
     {
         try{
-            if(!$this->load->helper(array('common')) || !$this->load->model('Problems') || !$this->load->model('Cases') || !$this->config->load('errno',true)){
+            if(!$this->load->helper(array('common')) || !$this->load->model('Problems') || !$this->config->load('errno',true)){
                 throw new \Exception($this->config->item('102','errno'), 102);
             }
             $this->check_arguments();
+            $this->arguments['uid'] = get_uid($this->arguments);
             $params = array(
-                'pid'  => $this->arguments['pid'],
+                'uid'  => $this->arguments['uid'],
+                'pids'  => $this->arguments['pids'],
             );
-            $case_infos = $this->Cases->show_case_id_by_pid($params);
-            $pro_info = $this->Problems->show_problem_info($params);
-            foreach ($case_infos as $key => $value){
-                if($value['type'] == 1){
-                    $pro_info['case_in_ids'][] = $value['case_id'];
-                }else{
-                    $pro_info['case_out_ids'][] = $value['case_id'];
-                }
-            }
-            if($pro_info == false){
-                throw new \Exception($this->config->item('100004','errno'),100004);
-            }
-            $this->response['data']['problem_info'] = $pro_info;
+            $this->Problems->mdelete_problem_info($params);
+            $this->response['data']['pids'] = $this->arguments['pids'];
         }catch (\Exception $e){
             $this->response['errno'] = $e->getCode();
             $this->response['errmsg'] = $e->getMessage();
@@ -52,7 +43,7 @@ class Getprobleminfo extends CI_Controller
     }
     public function check_arguments()
     {
-        if(!isset($this->arguments['pid'])){
+        if(!isset($this->arguments['uid']) || !isset($this->arguments['pids']) || !is_array($this->arguments['pids'])){
             throw new \Exception($this->config->item('103','errno'),103);
         }
     }

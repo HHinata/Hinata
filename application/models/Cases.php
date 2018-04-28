@@ -82,9 +82,34 @@ class Cases extends  CI_Model
         $info = $info->row_array();
         return $this->filter_info($info);
     }
+    public function show_case_id_by_pid($params)
+    {
+        if(!isset($params['pid'])){
+            throw new \Exception($this->config->item('103','errno'),103);
+        }
+        $where = array(
+            'pid' => $params['pid'],
+            'status' => 1,
+        );
+        $infos = $this->db->get_where('cases',$where);
+        if($infos == false){
+            $error = $this->db->error();
+            throw new \Exception($error['message'],$error['code']);
+        }
+        $num = $infos->num_rows();
+        if($num == 0){
+            return array();
+        }
+        $infos = $infos->result_array();
+        return $this->filter_infos($infos);
+    }
     public function filter_info($info)
     {
         return $info;
+    }
+    public function filter_infos($infos)
+    {
+        return $infos;
     }
 
 }

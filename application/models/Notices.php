@@ -87,6 +87,26 @@ class Notices extends  CI_Model
         $info = $info->row_array();
         return $this->filter_info($info);
     }
+    public function show_notice_info_by_ids($params)
+    {
+        if(!isset($params['notice_ids']) || !is_array($params['notice_ids']) || !isset($params['uid'])){
+            throw new \Exception($this->config->item('103','errno'),103);
+        }
+        $this->db->where_in('notice_id',$params['notice_ids']);
+        $this->db->where('status',1);
+        $this->db->where('uid',$params['uid']);
+        $infos = $this->db->get('notices');
+        if($infos == false){
+            $error = $this->db->error();
+            throw new \Exception($error['message'],$error['code']);
+        }
+        $num = $infos->num_rows();
+        if($num == 0){
+            return array();
+        }
+        $infos = $infos->result_array();
+        return $this->filter_infos($infos);
+    }
     public function update_notice_info($params)
     {
         if(!isset($params['notice_id']) || !is_numeric($params['notice_id']) || !isset($params['uid'])){
@@ -149,6 +169,10 @@ class Notices extends  CI_Model
     public function filter_info($info)
     {
         return $info;
+    }
+    public function filter_infos($infos)
+    {
+        return $infos;
     }
 
 }
