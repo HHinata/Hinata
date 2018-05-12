@@ -25,7 +25,8 @@ class Notices extends  CI_Model
         $use_time   = '';
         $use_memory = '';
         $message    = '';
-        $code       = isset($params['code']) ? $params['code'] : '';
+        //$code       = isset($params['code']) ? $params['code'] : '';
+        $code       = '';
         $notice_status = 1;
         $condition = array(
             'pid'           => $pid,
@@ -40,10 +41,12 @@ class Notices extends  CI_Model
             'create_time'   => date("Y-m-d H:i:s", time()),
             'update_time'   => date("Y-m-d H:i:s", time()),
         );
-        if(!$this->db->insert('notices', $condition)){
+        $db_name = self::getDBname($params['notice_id']);
+        if(!$this->db->insert($db_name, $condition)){
             $error = $this->db->error();
             throw new \Exception($error['message'],$error['code']);
         }
+        self::set_notice_cache($notice_id,$condition);
         return $notice_id;
     }
     public function delete_notice_info($params)
@@ -59,10 +62,12 @@ class Notices extends  CI_Model
             'uid' => $params['uid'],
             'notice_id' => $params['notice_id'],
         );
-        if(!$this->db->update('notices',$condition,$where)){
+        $db_name = self::getDBname($params['notice_id']);
+        if(!$this->db->update($db_name,$condition,$where)){
             $error = $this->db->error();
             throw new \Exception($error['message'],$error['code']);
         }
+        self::delete_notice_cache($params['notice_id']);
         return true;
     }
     public function show_notice_info($params)
@@ -70,12 +75,17 @@ class Notices extends  CI_Model
         if(!isset($params['notice_id']) || !is_numeric($params['notice_id']) || !isset($params['uid'])){
             throw new \Exception($this->config->item('103','errno'),103);
         }
+        $info = self::get_notice_cache($params['notice_id']);
+        if($info !== false){
+            return $this->filter_info($info);
+        }
         $where = array(
             'uid' => $params['uid'],
             'notice_id' => $params['notice_id'],
             'status' => 1,
         );
-        $info = $this->db->get_where('notices',$where);
+        $db_name = self::getDBname($params['notice_id']);
+        $info = $this->db->get_where($db_name,$where);
         if($info == false){
             $error = $this->db->error();
             throw new \Exception($error['message'],$error['code']);
@@ -95,7 +105,8 @@ class Notices extends  CI_Model
         $this->db->where_in('notice_id',$params['notice_ids']);
         $this->db->where('status',1);
         $this->db->where('uid',$params['uid']);
-        $infos = $this->db->get('notices');
+        $db_name = self::getDBname($params['notice_id']);
+        $infos = $this->db->get($db_name);
         if($infos == false){
             $error = $this->db->error();
             throw new \Exception($error['message'],$error['code']);
@@ -121,9 +132,15 @@ class Notices extends  CI_Model
             'uid' => $params['uid'],
             'notice_id' => $params['notice_id'],
         );
-        if(!$this->db->update('notices',$condition,$where)){
+        $db_name = self::getDBname($params['notice_id']);
+        if(!$this->db->update($db_name,$condition,$where)){
             $error = $this->db->error();
             throw new \Exception($error['message'],$error['code']);
+        }
+        $info = self::get_notice_cache($params['notice_id']);
+        if($info !== false){
+            $info = array_merge($info,$condition);
+            self::set_notice_cache($params['notice_id'],$info);
         }
         return $params['notice_id'];
     }
@@ -142,19 +159,21 @@ class Notices extends  CI_Model
         $where = array(
             'notice_id' => $params['notice_id'],
         );
-        if(!$this->db->update('notices',$condition,$where)){
+        $db_name = self::getDBname($params['notice_id']);
+        if(!$this->db->update($db_name,$condition,$where)){
             $error = $this->db->error();
             throw new \Exception($error['message'],$error['code']);
         }
         return $params['notice_id'];
     }
-    public function notice_pop()
+    public function notice_pop($notice_id) //todo
     {
         $where = array(
             'notice_status' => 1,
             'status' => 1,
         );
-        $info = $this->db->get_where('notices',$where);
+        $db_name = self::getDBname($notice_id);
+        $info = $this->db->get_where($db_name,$where);
         if($info == false){
             $error = $this->db->error();
             throw new \Exception($error['message'],$error['code']);
@@ -174,5 +193,32 @@ class Notices extends  CI_Model
     {
         return $infos;
     }
+    public function getDBname($notice_id){
+        return 'notices_'.((substr($notice_id,-4)) % 107);
+    }
 
+    public function get_notice_cache($notice_id)
+    {
+        $redis = new Redis();
+        $redis->connect('127.0.0.1', 6379);
+        $notice_info = $redis->get($notice_id);
+        if($notice_info === false){
+            return false;
+        }
+        $notice_info = json_decode($notice_info,true);
+        return $notice_info;
+    }
+    public function set_notice_cache($notice_id,$notice_info)
+    {
+        $notice_info = json_encode($notice_info);
+        $redis = new Redis();
+        $redis->connect('127.0.0.1', 6379);
+        return $redis->setex($notice_id,60*60*24,$notice_info); //如果未设置
+    }
+    public function delete_notice_cache($notice_id)
+    {
+        $redis = new Redis();
+        $redis->connect('127.0.0.1', 6379);
+        $redis->delete($notice_id);
+    }
 }

@@ -3,12 +3,11 @@
 /**
  * Created by PhpStorm.
  * User: Hinata
- * Date: 2018/4/13
- * Time: 19:53
+ * Date: 2018/5/10
+ * Time: 17:23
  */
-class Create extends CI_Controller
+class Upload extends CI_Controller
 {
-
     private $response;
     private $arguments;
     public function __construct()
@@ -33,41 +32,35 @@ class Create extends CI_Controller
         }catch (Exception $e) {
             $this->response['errno'] = $e->getCode();
             $this->response['errmsg'] = $e->getMessage();
-            log_message('error',$this->response['errmsg']."    ".json_encode($this->arguments));
+            log_message('error',$this->response['errmsg']);
         }
         echo json_encode($this->response);
     }
     public function do_upload()
     {
-        $notice_id = create_notice_id($this->arguments['uid']);
-        if($this->arguments['need_upload']){
-            $config['file_name'] = get_notice_file_name($notice_id);
-            $config['upload_path']   = get_notice_file_path($notice_id);
-            log_message('error',$config['upload_path'].'    '.$this->arguments['uid']);
-          //  echo json_encode($config['upload_path']);exit(0);
-            if(!$this->upload->initialize($config,false)){
-                throw new \Exception($this->config->item('102','errno'), 102);
-            }
-            if (!$this->upload->do_upload('notice_code')) {
-                $error = array('error' => $this->upload->display_errors());
-                throw new \Exception($error['error'], 100001);
-            }
+        $notice_id = $this->arguments['notice_id'];
+        $config['file_name'] = get_notice_file_name($notice_id);
+        if(!$this->upload->initialize($config,false)){
+            throw new \Exception($this->config->item('102','errno'), 102);
         }
-            //$code = json_encode(file_get_contents($_FILES['notice_code']['tmp_name']));
-            //echo json_encode($code);exit(0);
-            $code = '';
+        if (!$this->upload->do_upload('notice_code')) {
+            $error = array('error' => $this->upload->display_errors());
+            throw new \Exception($error['error'], 100001);
+        }
+        //$code = json_encode(file_get_contents($_FILES['notice_code']['tmp_name']));
+        //echo json_encode($code);exit(0);
+        $code = '';
         $params = array(
-            'pid'         => $this->arguments['pid'],
             'uid'         => $this->arguments['uid'],
             'notice_id'   => $notice_id,
             'code'        => $code,
         );
-        $this->Notices->create_notices($params);
+        $this->Notices->update_notice_info($params);
         $this->response['data']['notice_id'] = $notice_id;
     }
     public function check_arguments()
     {
-        if(!isset($this->arguments['pid']) || !isset($this->arguments['uid'])){
+        if(!isset($this->arguments['notice_id']) || !isset($this->arguments['uid']) || !isset($_FILES['notice_code'])){
             throw new \Exception($this->config->item('103','errno'), 103);
         }
     }

@@ -46,7 +46,7 @@ class Show extends CI_Controller
             if($notice_info == false){
                 throw new \Exception($this->config->item('100005','errno'),100005);
             }
-            $notice_info['code'] = json_decode($notice_info['code'],true);
+            //$notice_info['code'] = json_decode($notice_info['code'],true);
             $this->response['data']['notice_info'] = $notice_info;
         }catch (\Exception $e){
             $this->response['errno'] = $e->getCode();

@@ -26,6 +26,7 @@ class Showbyids extends CI_Controller
             if(!$this->load->helper(array('common')) || !$this->load->model('Problems') || !$this->config->load('errno',true)){
                 throw new \Exception($this->config->item('102','errno'), 102);
             }
+            $this->arguments['pids'] = json_decode($this->arguments['pids'],true);
             $this->check_arguments();
             $this->arguments['uid'] = get_uid($this->arguments);
             $params = array(

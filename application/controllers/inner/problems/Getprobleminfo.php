@@ -20,6 +20,7 @@ class Getprobleminfo extends CI_Controller
             'data'   => [],
         );
     }
+
     public function index()
     {
         try{

@@ -24,6 +24,7 @@ class Create extends CI_Controller
     public function index()
     {
         try{
+           // echo json_encode("xxxx");exit(0);
             if(!$this->load->helper(array('common')) || !$this->load->model('Problems') || !$this->config->load('errno',true)){
                 throw new \Exception($this->config->item('102','errno'), 102);
             }

@@ -191,7 +191,9 @@ class Problems extends  CI_Model
     }
     public function create_problem_id($uid)
     {
-        $id = config_item('colony_id').$uid.time();
+        list($msec, $sec) = explode(' ', microtime());
+        $msectime =  (float)sprintf('%.0f', (floatval($msec) + floatval($sec)) * 1000);
+        $id = config_item('colony_id').$uid.$msectime.rand(1,1000);
         return $id;
     }
 
