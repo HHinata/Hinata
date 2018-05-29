@@ -2,8 +2,8 @@
 <project version="4">
   <component name="WebServers">
     <option name="servers">
-      <webServer id="7b6b355e-b4ce-47ad-8918-f5b5756c21e8" name="Hinata" url="http://10.96.84.37">
-        <fileTransfer host="10.96.84.37" port="22" rootFolder="/home/xiaoju" accessType="SFTP">
+      <webServer id="7b6b355e-b4ce-47ad-8918-f5b5756c21e8" name="Hinata" url="http://10.96.82.233">
+        <fileTransfer host="10.96.82.233" port="22" rootFolder="/home/xiaoju" accessType="SFTP">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" />
           </advancedOptions>

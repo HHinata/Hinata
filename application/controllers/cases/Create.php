@@ -29,6 +29,10 @@ class Create extends CI_Controller
             }
             $this->check_arguments();
             $this->arguments['uid'] = get_uid($this->arguments);
+            $power = check_power_case_write($this->arguments['uid']);
+            if($power == false){
+                throw new \Exception($this->config->item('104','errno'), 104);
+            }
             $this->do_upload();
         }catch (Exception $e) {
             $this->response['errno'] = $e->getCode();
@@ -62,7 +66,7 @@ class Create extends CI_Controller
     }
     public function check_arguments()
     {
-        if(!isset($this->arguments['pid']) || !isset($this->arguments['type']) || !isset($this->arguments['uid']) || !isset($_FILES['case_file'])){
+        if(!isset($this->arguments['pid']) || !isset($this->arguments['type']) || !isset($this->arguments['token']) || !isset($_FILES['case_file'])){
             throw new \Exception($this->config->item('103','errno'), 103);
         }
     }

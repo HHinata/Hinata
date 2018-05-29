@@ -28,16 +28,22 @@ class Getprobleminfo extends CI_Controller
                 throw new \Exception($this->config->item('102','errno'), 102);
             }
             $this->check_arguments();
+            $uid = '121527580551';
+            $power = check_power_inner($uid);
+            if($power == false){
+                throw new \Exception($this->config->item('104','errno'), 104);
+            }
             $params = array(
                 'pid'  => $this->arguments['pid'],
             );
             $case_infos = $this->Cases->show_case_id_by_pid($params);
             $pro_info = $this->Problems->show_problem_info($params);
+            //echo json_encode($pro_info);exit(0);
             foreach ($case_infos as $key => $value){
                 if($value['type'] == 1){
-                    $pro_info['case_in_ids'][] = $value['case_id'];
+                    $pro_info['case_in_ids'] = $value['case_id'];
                 }else{
-                    $pro_info['case_out_ids'][] = $value['case_id'];
+                    $pro_info['case_out_ids'] = $value['case_id'];
                 }
             }
             if($pro_info == false){

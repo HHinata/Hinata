@@ -29,6 +29,10 @@ class Showbyids extends CI_Controller
             $this->arguments['pids'] = json_decode($this->arguments['pids'],true);
             $this->check_arguments();
             $this->arguments['uid'] = get_uid($this->arguments);
+            $power = check_power_problem_read($this->arguments['uid']);
+            if($power == false){
+                throw new \Exception($this->config->item('104','errno'), 104);
+            }
             $params = array(
                 'uid'  => $this->arguments['uid'],
                 'pids'  => $this->arguments['pids'],
@@ -47,7 +51,7 @@ class Showbyids extends CI_Controller
     }
     public function check_arguments()
     {
-        if(!isset($this->arguments['uid']) || !isset($this->arguments['pids']) || !is_array($this->arguments['pids'])){
+        if(!isset($this->arguments['token']) || !isset($this->arguments['pids']) || !is_array($this->arguments['pids'])){
             throw new \Exception($this->config->item('103','errno'),103);
         }
     }

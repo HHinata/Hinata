@@ -27,8 +27,15 @@ class Getcode extends CI_Controller
                 throw new \Exception($this->config->item('102','errno'), 102);
             }
             $this->check_arguments();
+            $uid = '121527580551';
+            $power = check_power_inner($uid);
+            if($power == false){
+                throw new \Exception($this->config->item('104','errno'), 104);
+            }
+            //$this->arguments['notice_id'] = '1152739378765865342222';
             $file_name = get_notice_file_name($this->arguments['notice_id']);
-            $file_name = $this->config->item('upload_path').$file_name;
+            $file_name = get_notice_file_path($this->arguments['notice_id']).$file_name;
+            //echo json_encode($file_name);exit(0);
             if(!force_download($file_name,NULL)){
                 throw new \Exception($this->config->item('100003','errno'),100003);
             }

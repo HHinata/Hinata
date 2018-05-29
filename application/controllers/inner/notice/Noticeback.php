@@ -28,6 +28,11 @@ class  Noticeback extends CI_Controller
                 throw new \Exception($this->config->item('102', 'errno'), 102);
             }
             $this->check_arguments();
+            $uid = '121527580551';
+            $power = check_power_inner($uid);
+            if($power == false){
+                throw new \Exception($this->config->item('104','errno'), 104);
+            }
             $params = array(
                 'notice_id' => $this->arguments['notice_id'],
                 'use_time'  => $this->arguments['use_time'],

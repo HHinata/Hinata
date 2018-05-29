@@ -27,6 +27,11 @@ class Getproblemcaseinfo extends CI_Controller
                 throw new \Exception($this->config->item('102','errno'), 102);
             }
             $this->check_arguments();
+            $uid = '121527580551';
+            $power = check_power_inner($uid);
+            if($power == false){
+                throw new \Exception($this->config->item('104','errno'), 104);
+            }
             $params = array(
                 'case_id' => $this->arguments['case_id'],
                 'type'  => $this->arguments['type'],

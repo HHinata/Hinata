@@ -28,6 +28,10 @@ class Delete extends CI_Controller
             }
             $this->check_arguments();
             $this->arguments['uid'] = get_uid($this->arguments);
+            $power = check_power_notice_write($this->arguments['uid']);
+            if($power == false){
+                throw new \Exception($this->config->item('104','errno'), 104);
+            }
             $file_name = get_notice_file_name($this->arguments['notice_id']);
             $params = array(
                 'uid'  => $this->arguments['uid'],
@@ -44,7 +48,7 @@ class Delete extends CI_Controller
     }
     public function check_arguments()
     {
-        if(!isset($this->arguments['uid']) || !isset($this->arguments['notice_id'])){
+        if(!isset($this->arguments['token']) || !isset($this->arguments['notice_id'])){
             throw new \Exception($this->config->item('103','errno'),103);
         }
     }

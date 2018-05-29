@@ -61,11 +61,10 @@ class Cases extends  CI_Model
     }
     public function show_case_info($params)
     {
-        if(!isset($params['case_id']) || !is_numeric($params['case_id']) || !isset($params['uid']) || !isset($params['type'])){
+        if(!isset($params['case_id']) || !is_numeric($params['case_id']) || !isset($params['type'])){
             throw new \Exception($this->config->item('103','errno'),103);
         }
         $where = array(
-            'uid' => $params['uid'],
             'case_id' => $params['case_id'],
             'type'  => $params['type'],
             'status' => 1,

@@ -3,10 +3,10 @@
 /**
  * Created by PhpStorm.
  * User: Hinata
- * Date: 2018/5/10
- * Time: 17:22
+ * Date: 2018/5/29
+ * Time: 15:36
  */
-class Modify extends CI_Controller
+class Login extends CI_Controller
 {
     private $response;
     private $arguments;
@@ -28,15 +28,18 @@ class Modify extends CI_Controller
                 throw new \Exception($this->config->item('102','errno'), 102);
             }
             $this->check_arguments();
-            $this->arguments['uid'] = get_uid($this->arguments);
             $params = array(
-                'uid'         => $this->arguments['uid'],
+                'uname'       => $this->arguments['uname'],
                 'password'    => $this->arguments['password'],
             );
-            $uid = $this->Users->update_user_info($params);
-            $token = $this->arguments['token'];
-
-            $this->response['data']['token'] = $token;
+            $user_info = $this->Users->login($params);
+            if(empty($user_info)){
+                $this->response['data'] = '';
+            }else{
+                $uid = $user_info['uid'];
+                $token = create_token($uid);
+                $this->response['data']['token'] = $token;
+            }
         }catch (Exception $e) {
             $this->response['errno'] = $e->getCode();
             $this->response['errmsg'] = $e->getMessage();
@@ -46,7 +49,7 @@ class Modify extends CI_Controller
     }
     public function check_arguments()
     {
-        if(!isset($this->arguments['token']) || !isset($this->arguments['password'])){
+        if(!isset($this->arguments['password']) || !isset($this->arguments['uname'])){
             throw new \Exception($this->config->item('103','errno'), 103);
         }
     }

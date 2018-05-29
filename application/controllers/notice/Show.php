@@ -32,12 +32,17 @@ class Show extends CI_Controller
     }
     public function index()
     {
+
         try{
             if(!$this->load->helper(array('common')) || !$this->load->model('Notices') || !$this->config->load('errno',true)){
                 throw new \Exception($this->config->item('102','errno'), 102);
             }
             $this->check_arguments();
             $this->arguments['uid'] = get_uid($this->arguments);
+            $power = check_power_notice_read($this->arguments['uid']);
+            if($power == false){
+                throw new \Exception($this->config->item('104','errno'), 104);
+            }
             $params = array(
                 'uid'  => $this->arguments['uid'],
                 'notice_id' => $this->arguments['notice_id'],
@@ -46,7 +51,6 @@ class Show extends CI_Controller
             if($notice_info == false){
                 throw new \Exception($this->config->item('100005','errno'),100005);
             }
-            //$notice_info['code'] = json_decode($notice_info['code'],true);
             $this->response['data']['notice_info'] = $notice_info;
         }catch (\Exception $e){
             $this->response['errno'] = $e->getCode();
@@ -57,7 +61,7 @@ class Show extends CI_Controller
     }
     public function check_arguments()
     {
-        if(!isset($this->arguments['uid']) || !isset($this->arguments['notice_id'])){
+        if(!isset($this->arguments['token']) || !isset($this->arguments['notice_id'])){
             throw new \Exception($this->config->item('103','errno'),103);
         }
         if(!isset($this->arguments['aFields'])){

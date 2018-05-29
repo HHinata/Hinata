@@ -8,6 +8,12 @@
  */
 class Notices extends  CI_Model
 {
+    static $redis_write_ip = array(
+        '10.96.88.20',
+    );
+    static $redis_read_ip = array(
+        '10.96.91.199',
+    );
     public function __construct()
     {
         parent::__construct();
@@ -28,6 +34,7 @@ class Notices extends  CI_Model
         //$code       = isset($params['code']) ? $params['code'] : '';
         $code       = '';
         $notice_status = 1;
+        $colony_id = $params['colony_id'];
         $condition = array(
             'pid'           => $pid,
             'status'        => $status,
@@ -38,6 +45,7 @@ class Notices extends  CI_Model
             'use_memory'    => $use_memory,
             'message'       => $message,
             'code'          => $code,
+            'colony_id'     => $colony_id,
             'create_time'   => date("Y-m-d H:i:s", time()),
             'update_time'   => date("Y-m-d H:i:s", time()),
         );
@@ -72,7 +80,7 @@ class Notices extends  CI_Model
     }
     public function show_notice_info($params)
     {
-        if(!isset($params['notice_id']) || !is_numeric($params['notice_id']) || !isset($params['uid'])){
+        if(!isset($params['notice_id']) || !is_numeric($params['notice_id'])){
             throw new \Exception($this->config->item('103','errno'),103);
         }
         $info = self::get_notice_cache($params['notice_id']);
@@ -80,7 +88,6 @@ class Notices extends  CI_Model
             return $this->filter_info($info);
         }
         $where = array(
-            'uid' => $params['uid'],
             'notice_id' => $params['notice_id'],
             'status' => 1,
         );
@@ -166,24 +173,45 @@ class Notices extends  CI_Model
         }
         return $params['notice_id'];
     }
-    public function notice_pop($notice_id) //todo
+    public function pop_notice()
+    {
+        $id = self::pop_notice_cache();
+        if($id != false){
+            $params['notice_id'] = $id;
+            return self::show_notice_info($params);
+        }else{
+            self::ergodic_notice();
+            return [];
+        }
+    }
+    public function set_judgeing($id)
+    {
+        $redis = new Redis();
+        $redis->connect(self::$redis_write_ip[0], 6379);
+        return $redis->setnx($id,1);
+    }
+    public function notice_pop($notice_id = '') //todo
     {
         $where = array(
             'notice_status' => 1,
             'status' => 1,
         );
-        $db_name = self::getDBname($notice_id);
-        $info = $this->db->get_where($db_name,$where);
-        if($info == false){
-            $error = $this->db->error();
-            throw new \Exception($error['message'],$error['code']);
+        for ($i = 0;$i < 107 ;$i++){
+            $db_name = self::getDBname($i);
+            $this->db->limit(1);
+            $info = $this->db->get_where($db_name,$where);
+            if($info == false){
+                $error = $this->db->error();
+                throw new \Exception($error['message'],$error['code']);
+            }
+            $num = $info->num_rows();
+            if($num == 0){
+                continue;
+            }
+            $info = $info->row_array();
+            return $this->filter_info($info);
         }
-        $num = $info->num_rows();
-        if($num == 0){
-            return [];
-        }
-        $info = $info->row_array();
-        return $this->filter_info($info);
+        return [];
     }
     public function filter_info($info)
     {
@@ -199,8 +227,9 @@ class Notices extends  CI_Model
 
     public function get_notice_cache($notice_id)
     {
+        //return false;
         $redis = new Redis();
-        $redis->connect('127.0.0.1', 6379);
+        $redis->connect(self::$redis_read_ip[0], 6379);
         $notice_info = $redis->get($notice_id);
         if($notice_info === false){
             return false;
@@ -212,13 +241,89 @@ class Notices extends  CI_Model
     {
         $notice_info = json_encode($notice_info);
         $redis = new Redis();
-        $redis->connect('127.0.0.1', 6379);
-        return $redis->setex($notice_id,60*60*24,$notice_info); //如果未设置
+        $redis->connect(self::$redis_write_ip[0], 6379);
+        return $redis->set($notice_id,$notice_info,60*60*24);
     }
     public function delete_notice_cache($notice_id)
     {
         $redis = new Redis();
-        $redis->connect('127.0.0.1', 6379);
+        $redis->connect(self::$redis_write_ip[0], 6379);
         $redis->delete($notice_id);
     }
+    public function get_ergodic_flag()
+    {
+        $redis = new Redis();
+        $redis->connect(self::$redis_read_ip[0], 6379);
+        $flag = $redis->get('ergodic_flag');
+        if($flag == 1){
+            return true;
+        }
+        return false;
+    }
+    public function set_ergodic_flag()
+    {
+        $redis = new Redis();
+        $redis->connect(self::$redis_write_ip[0], 6379);
+        return $redis->setnx('ergodic_flag',1);
+    }
+    public function delete_ergodic_flag()
+    {
+        $redis = new Redis();
+        $redis->connect(self::$redis_write_ip[0], 6379);
+        $redis->delete('ergodic_flag');
+    }
+    public function push_notice_cache($notice_id)
+    {
+        $redis = new Redis();
+        $redis->connect(self::$redis_write_ip[0], 6379);
+        $redis->lpush('notice_id',$notice_id);
+    }
+    public function pop_notice_cache()
+    {
+        $redis = new Redis();
+        $redis->connect(self::$redis_write_ip[0], 6379);
+        $id = false;
+        while(true){
+            $id = $redis->rPop('notice_id');
+            $judeging = self::set_judgeing($id);
+            if($judeging == true){
+                return $id;
+            }
+        }
+        return false;
+    }
+    public function ergodic_notice()
+    {
+        if(self::get_ergodic_flag() == true){
+            return;
+        }
+        if(self::set_ergodic_flag() != true){
+            return;
+        }
+        $where = array(
+            'notice_status' => 1,
+            'status' => 1,
+        );
+        for ($i = 0;$i < 107 ;$i++){
+            $db_name = self::getDBname($i);
+            $info = $this->db->get_where($db_name,$where);
+            if($info == false){
+                $error = $this->db->error();
+                throw new \Exception($error['message'],$error['code']);
+            }
+            $num = $info->num_rows();
+            if($num == 0){
+                continue;
+            }
+            $infos = $info->result_array();
+            foreach ($infos as $key => $value){
+                if(isset($value['notice_id'])) {
+                    self::push_notice_cache($value['notice_id']);
+                }
+            }
+        }
+        self::delete_ergodic_flag();
+        return;
+    }
+
 }

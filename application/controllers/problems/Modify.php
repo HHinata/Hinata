@@ -29,6 +29,10 @@ class Modify extends CI_Controller
             }
             $this->check_arguments();
             $this->arguments['uid'] = get_uid($this->arguments);
+            $power = check_power_problem_write($this->arguments['uid']);
+            if($power == false){
+                throw new \Exception($this->config->item('104','errno'), 104);
+            }
 
             $params = array(
                 'uid'         => $this->arguments['uid'],
@@ -49,7 +53,7 @@ class Modify extends CI_Controller
     }
     public function check_arguments()
     {
-        if(!isset($this->arguments['pid']) || !isset($this->arguments['uid'])){
+        if(!isset($this->arguments['pid']) || !isset($this->arguments['token'])){
             throw new \Exception($this->config->item('103','errno'),103);
         }
     }

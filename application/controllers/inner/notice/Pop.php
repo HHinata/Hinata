@@ -27,11 +27,18 @@ class Pop extends CI_Controller
                 throw new \Exception($this->config->item('102','errno'), 102);
             }
             $this->check_arguments();
-            $notice_info = $this->Notices->notice_pop();
+            $uid = '121527580551';
+            $power = check_power_inner($uid);
+            if($power == false){
+                throw new \Exception($this->config->item('104','errno'), 104);
+            }
+            $notice_info = $this->Notices->pop_notice();
             if($notice_info === false){
                 throw new \Exception($this->config->item('100006','errno'),100006);
             }
-            $notice_info['code'] = json_decode($notice_info['code'],true);
+            if(!empty($notice_info)){
+                $notice_info['code'] = json_decode($notice_info['code'],true);
+            }
             $this->response['data']['notice_info'] = $notice_info;
         }catch (\Exception $e){
             $this->response['errno'] = $e->getCode();

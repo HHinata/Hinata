@@ -112,11 +112,10 @@ class Problems extends  CI_Model
     }
     public function show_problem_info($params)
     {
-        if(!isset($params['pid']) || !is_numeric($params['pid']) || !isset($params['uid'])){
+        if(!isset($params['pid']) || !is_numeric($params['pid'])){
             throw new \Exception($this->config->item('103','errno'),103);
         }
         $where = array(
-            'uid'    => $params['uid'],
             'pid'    => $params['pid'],
             'status' => 1,
         );

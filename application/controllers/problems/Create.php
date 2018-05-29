@@ -24,12 +24,15 @@ class Create extends CI_Controller
     public function index()
     {
         try{
-           // echo json_encode("xxxx");exit(0);
             if(!$this->load->helper(array('common')) || !$this->load->model('Problems') || !$this->config->load('errno',true)){
                 throw new \Exception($this->config->item('102','errno'), 102);
             }
             $this->check_arguments();
             $this->arguments['uid'] = get_uid($this->arguments);
+            $power = check_power_problem_write($this->arguments['uid']);
+            if($power == false){
+                throw new \Exception($this->config->item('104','errno'), 104);
+            }
 
             $params = array(
                 'uid'         => $this->arguments['uid'],
@@ -50,7 +53,7 @@ class Create extends CI_Controller
     }
     public function check_arguments()
     {
-        if(!isset($this->arguments['time_limit']) || !isset($this->arguments['uid']) || !isset($this->arguments['type']) || !isset($this->arguments['mem_limit'])){
+        if(!isset($this->arguments['time_limit']) || !isset($this->arguments['token']) || !isset($this->arguments['type']) || !isset($this->arguments['mem_limit'])){
             throw new \Exception($this->config->item('103','errno'),103);
         }
     }
