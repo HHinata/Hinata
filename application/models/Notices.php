@@ -14,6 +14,24 @@ class Notices extends  CI_Model
     static $redis_read_ip = array(
         '10.96.91.199',
     );
+    static $redis_read_conn = false;
+    static $redis_write_conn = false;
+    public function redis_read_connect()
+    {
+        if(self::$redis_read_conn == false){
+            self::$redis_read_conn = new Redis();
+            self::$redis_read_conn->connect(self::$redis_read_ip[0], 6379);
+        }
+        return self::$redis_read_conn;
+    }
+    public function redis_write_connect()
+    {
+        if(self::$redis_write_conn == false){
+            self::$redis_write_conn = new Redis();
+            self::$redis_write_conn->connect(self::$redis_write_ip[0], 6379);
+        }
+        return self::$redis_write_conn;
+    }
     public function __construct()
     {
         parent::__construct();
@@ -171,11 +189,17 @@ class Notices extends  CI_Model
             $error = $this->db->error();
             throw new \Exception($error['message'],$error['code']);
         }
+        $info = self::get_notice_cache($params['notice_id']);
+        if($info !== false){
+            $info = array_merge($info,$condition);
+            self::set_notice_cache($params['notice_id'],$info);
+        }
         return $params['notice_id'];
     }
     public function pop_notice()
     {
         $id = self::pop_notice_cache();
+        //echo json_encode($id);exit(0);
         if($id != false){
             $params['notice_id'] = $id;
             return self::show_notice_info($params);
@@ -183,12 +207,6 @@ class Notices extends  CI_Model
             self::ergodic_notice();
             return [];
         }
-    }
-    public function set_judgeing($id)
-    {
-        $redis = new Redis();
-        $redis->connect(self::$redis_write_ip[0], 6379);
-        return $redis->setnx($id,1);
     }
     public function notice_pop($notice_id = '') //todo
     {
@@ -228,8 +246,7 @@ class Notices extends  CI_Model
     public function get_notice_cache($notice_id)
     {
         //return false;
-        $redis = new Redis();
-        $redis->connect(self::$redis_read_ip[0], 6379);
+        $redis = self::redis_read_connect();
         $notice_info = $redis->get($notice_id);
         if($notice_info === false){
             return false;
@@ -240,8 +257,7 @@ class Notices extends  CI_Model
     public function set_notice_cache($notice_id,$notice_info)
     {
         $notice_info = json_encode($notice_info);
-        $redis = new Redis();
-        $redis->connect(self::$redis_write_ip[0], 6379);
+        $redis = self::redis_write_connect();
         return $redis->set($notice_id,$notice_info,60*60*24);
     }
     public function delete_notice_cache($notice_id)
@@ -252,8 +268,7 @@ class Notices extends  CI_Model
     }
     public function get_ergodic_flag()
     {
-        $redis = new Redis();
-        $redis->connect(self::$redis_read_ip[0], 6379);
+        $redis = self::redis_read_connect();
         $flag = $redis->get('ergodic_flag');
         if($flag == 1){
             return true;
@@ -262,30 +277,32 @@ class Notices extends  CI_Model
     }
     public function set_ergodic_flag()
     {
-        $redis = new Redis();
-        $redis->connect(self::$redis_write_ip[0], 6379);
+        $redis = self::redis_write_connect();
         return $redis->setnx('ergodic_flag',1);
     }
     public function delete_ergodic_flag()
     {
-        $redis = new Redis();
-        $redis->connect(self::$redis_write_ip[0], 6379);
+        $redis = self::redis_write_connect();
         $redis->delete('ergodic_flag');
     }
     public function push_notice_cache($notice_id)
     {
-        $redis = new Redis();
-        $redis->connect(self::$redis_write_ip[0], 6379);
+        $redis = self::redis_write_connect();
         $redis->lpush('notice_id',$notice_id);
     }
     public function pop_notice_cache()
     {
-        $redis = new Redis();
-        $redis->connect(self::$redis_write_ip[0], 6379);
+        //return '115275123415022532222';
+        $redis = self::redis_write_connect();
         $id = false;
         while(true){
             $id = $redis->rPop('notice_id');
-            $judeging = self::set_judgeing($id);
+            if($id == false){
+                return false;
+            }
+            $judeging = $redis->setnx($id.'x',1);
+           // echo json_encode($id);exit(0);
+            $redis->expire($id.'x',5);
             if($judeging == true){
                 return $id;
             }

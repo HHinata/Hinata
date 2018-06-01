@@ -33,6 +33,7 @@ class Pop extends CI_Controller
                 throw new \Exception($this->config->item('104','errno'), 104);
             }
             $notice_info = $this->Notices->pop_notice();
+            //echo json_encode($notice_info);exit(0);
             if($notice_info === false){
                 throw new \Exception($this->config->item('100006','errno'),100006);
             }

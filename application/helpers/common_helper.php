@@ -67,7 +67,8 @@ function get_user_info($uid)
 {
     $CI=&get_instance();
     $CI->load->model('Users');
-    $info = $CI->Users->show_user_info($uid);
+    $params['uid'] = $uid;
+    $info = $CI->Users->show_user_info($params);
     return $info;
 }
 

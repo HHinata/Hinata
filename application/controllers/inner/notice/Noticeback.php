@@ -24,6 +24,7 @@ class  Noticeback extends CI_Controller
     public function index()
     {
         try {
+            log_message('INFO', 'Noticeback | '.json_encode($this->arguments));
             if (!$this->load->helper(array('common')) || !$this->load->model('Notices') || !$this->config->load('errno', true)) {
                 throw new \Exception($this->config->item('102', 'errno'), 102);
             }
